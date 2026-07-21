@@ -1,0 +1,30 @@
+{
+  "name": "alif-auto-admin",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc -b --noEmit"
+  },
+  "dependencies": {
+    "@quasar/extras": "^2.0.2",
+    "axios": "^1.18.1",
+    "pinia": "^3.0.4",
+    "quasar": "^2.21.3",
+    "vue": "^3.5.39",
+    "vue-i18n": "^11.4.6",
+    "vue-router": "^5.1.0"
+  },
+  "devDependencies": {
+    "@quasar/vite-plugin": "^1.12.0",
+    "@vitejs/plugin-vue": "^6.0.5",
+    "@vue/tsconfig": "^0.9.1",
+    "sass": "^1.100.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.1.4",
+    "vue-tsc": "^3.3.7"
+  }
+}
