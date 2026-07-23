@@ -83,9 +83,10 @@ import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useQuasar } from 'quasar'
 import { api } from '@/boot/api'
+import { usePolling } from '@/composables/usePolling'
 import type { AdminOrder, OrderStatus } from '@/types'
 
-const props = defineProps<{ ownership: 'regular' | 'partner' }>()
+const props = defineProps<{ ownership: 'regular' | 'partner' | 'partnership' }>()
 
 const { t } = useI18n()
 const $q = useQuasar()
@@ -106,15 +107,21 @@ const baseColumns = [
   { name: 'createdAt', label: t('common.createdAt'), field: 'createdAt', align: 'left' as const },
   { name: 'name', label: t('orders.name'), field: 'name', align: 'left' as const },
   { name: 'phone', label: t('orders.phone'), field: 'phone', align: 'left' as const },
-  { name: 'vehicle', label: t('orders.vehicle'), field: 'vehicle', align: 'left' as const },
 ]
+const vehicleColumn = { name: 'vehicle', label: t('orders.vehicle'), field: 'vehicle', align: 'left' as const }
+const emailColumn = { name: 'email', label: t('orders.email'), field: 'email', align: 'left' as const }
 const partnerColumn = { name: 'partner', label: t('orders.partner'), field: 'partner', align: 'left' as const }
 const tailColumns = [
   { name: 'message', label: t('orders.message'), field: 'message', align: 'left' as const },
   { name: 'status', label: t('common.status'), field: 'status', align: 'left' as const },
 ]
+// Partnership applications carry no vehicle, so show the contact email instead.
 const columns =
-  props.ownership === 'partner' ? [...baseColumns, partnerColumn, ...tailColumns] : [...baseColumns, ...tailColumns]
+  props.ownership === 'partnership'
+    ? [...baseColumns, emailColumn, ...tailColumns]
+    : props.ownership === 'partner'
+      ? [...baseColumns, vehicleColumn, partnerColumn, ...tailColumns]
+      : [...baseColumns, vehicleColumn, ...tailColumns]
 
 function statusColor(status: string) {
   return { new: 'primary', in_progress: 'warning', processed: 'positive', declined: 'grey' }[status] ?? 'grey'
@@ -123,8 +130,8 @@ function statusLabelFor(status: string) {
   return statusOptions.find((o) => o.value === status)?.label ?? status
 }
 
-async function load() {
-  loading.value = true
+async function load({ silent = false }: { silent?: boolean } = {}) {
+  if (!silent) loading.value = true
   try {
     const { data } = await api.get('/admin/orders', {
       params: {
@@ -138,7 +145,7 @@ async function load() {
     orders.value = data.data
     pagination.value.rowsNumber = data.meta.total
   } finally {
-    loading.value = false
+    if (!silent) loading.value = false
   }
 }
 
@@ -159,5 +166,9 @@ async function updateStatus(order: AdminOrder, status: OrderStatus) {
   await load()
 }
 
-onMounted(load)
+onMounted(() => load())
+
+// Keep the list in sync with orders/status changes made elsewhere (client site,
+// partner panel) without forcing a manual reload.
+usePolling(() => load({ silent: true }))
 </script>

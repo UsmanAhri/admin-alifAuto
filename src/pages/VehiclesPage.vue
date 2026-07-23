@@ -264,6 +264,7 @@ import { useI18n } from 'vue-i18n'
 import { useQuasar } from 'quasar'
 import { api } from '@/boot/api'
 import { useCategoryOptions } from '@/composables/useCategoryOptions'
+import { usePolling } from '@/composables/usePolling'
 import type { AdminVehicle, CharacteristicGroup, Translations } from '@/types'
 
 const { t, locale } = useI18n()
@@ -404,8 +405,8 @@ function validateRequiredCharacteristics(): boolean {
   return ok
 }
 
-async function load() {
-  loading.value = true
+async function load({ silent = false }: { silent?: boolean } = {}) {
+  if (!silent) loading.value = true
   try {
     const { data } = await api.get('/admin/vehicles', {
       params: {
@@ -419,7 +420,7 @@ async function load() {
     vehicles.value = data.data
     pagination.value.rowsNumber = data.meta.total
   } finally {
-    loading.value = false
+    if (!silent) loading.value = false
   }
 }
 
@@ -600,6 +601,13 @@ onMounted(() => {
   loadCategories()
   loadBrands()
   load()
+})
+
+// Surface vehicles added by partners without a manual reload. Paused while the
+// create/edit dialog is open so the table underneath doesn't shift mid-edit.
+usePolling(() => {
+  if (dialogOpen.value) return
+  return load({ silent: true })
 })
 </script>
 

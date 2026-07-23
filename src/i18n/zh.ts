@@ -110,7 +110,7 @@ export default {
     name: '姓名', phone: '电话', email: '邮箱', message: '留言', vehicle: '车辆',
     statusNew: '新', statusInProgress: '处理中', statusProcessed: '已处理', statusDeclined: '已拒绝',
     subtitle: '客户咨询与预订',
-    tabVehicle: '车辆订单', tabPartner: '合作伙伴订单', partner: '合作伙伴',
+    tabVehicle: '车辆订单', tabPartner: '合作伙伴订单', tabPartnership: '合作申请', partner: '合作伙伴',
     empty: '暂无订单',
   },
   importPage: {

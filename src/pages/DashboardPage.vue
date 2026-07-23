@@ -178,6 +178,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { api } from '@/boot/api'
+import { usePolling } from '@/composables/usePolling'
 import { useAuthStore } from '@/stores/auth'
 import type { DashboardData, OrderStatus, VehicleStatus } from '@/types'
 
@@ -240,17 +241,20 @@ function vehicleStatusLabel(s: VehicleStatus) {
   return t(vehicleStatusMap[s]?.key ?? s)
 }
 
-async function load() {
-  loading.value = true
+async function load({ silent = false }: { silent?: boolean } = {}) {
+  if (!silent) loading.value = true
   try {
     const { data: res } = await api.get('/admin/dashboard')
     data.value = res.data
   } finally {
-    loading.value = false
+    if (!silent) loading.value = false
   }
 }
 
-onMounted(load)
+onMounted(() => load())
+
+// Keep the summary counts and latest lists fresh as activity comes in elsewhere.
+usePolling(() => load({ silent: true }))
 </script>
 
 <style scoped>

@@ -110,7 +110,7 @@ export default {
     name: 'Имя', phone: 'Телефон', email: 'Email', message: 'Сообщение', vehicle: 'Автомобиль',
     statusNew: 'Новая', statusInProgress: 'В работе', statusProcessed: 'Обработана', statusDeclined: 'Отклонена',
     subtitle: 'Заявки и бронирования клиентов',
-    tabVehicle: 'Заявки по авто', tabPartner: 'Заявки партнёров', partner: 'Партнёр',
+    tabVehicle: 'Заявки по авто', tabPartner: 'Заявки партнёров', tabPartnership: 'Заявки на партнёрство', partner: 'Партнёр',
     empty: 'Пока нет заявок',
   },
   importPage: {

@@ -17,6 +17,7 @@
       >
         <q-tab name="vehicle" icon="directions_car" :label="t('orders.tabVehicle')" />
         <q-tab name="partner" icon="handshake" :label="t('orders.tabPartner')" />
+        <q-tab v-if="showPartnership" name="partnership" icon="business_center" :label="t('orders.tabPartnership')" />
       </q-tabs>
       <q-separator />
 
@@ -27,16 +28,23 @@
         <q-tab-panel name="partner" class="q-pa-md">
           <OrdersTable ownership="partner" />
         </q-tab-panel>
+        <q-tab-panel v-if="showPartnership" name="partnership" class="q-pa-md">
+          <OrdersTable ownership="partnership" />
+        </q-tab-panel>
       </q-tab-panels>
     </div>
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import OrdersTable from '@/components/OrdersTable.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const { t } = useI18n()
-const tab = ref<'vehicle' | 'partner'>('vehicle')
+const auth = useAuthStore()
+// Partnership applications are a staff-facing queue; partners don't triage them.
+const showPartnership = computed(() => auth.role !== 'partner')
+const tab = ref<'vehicle' | 'partner' | 'partnership'>('vehicle')
 </script>

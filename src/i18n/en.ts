@@ -110,7 +110,7 @@ export default {
     name: 'Name', phone: 'Phone', email: 'Email', message: 'Message', vehicle: 'Vehicle',
     statusNew: 'New', statusInProgress: 'In progress', statusProcessed: 'Processed', statusDeclined: 'Declined',
     subtitle: 'Customer requests and bookings',
-    tabVehicle: 'Vehicle orders', tabPartner: 'Partner orders', partner: 'Partner',
+    tabVehicle: 'Vehicle orders', tabPartner: 'Partner orders', tabPartnership: 'Partnership applications', partner: 'Partner',
     empty: 'No orders here yet',
   },
   importPage: {
