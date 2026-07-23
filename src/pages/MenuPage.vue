@@ -1,7 +1,7 @@
 <template>
   <q-page class="q-pa-md">
     <div class="row items-center q-mb-md">
-      <div class="text-h6 col">{{ t('nav.menu') }}</div>
+      <div class="page-title col">{{ t('nav.menu') }}</div>
       <q-btn color="primary" icon="add" :label="t('menu.addRoot')" @click="openCreate(null)" />
     </div>
 

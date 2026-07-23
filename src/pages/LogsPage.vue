@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="text-h6 q-mb-md">{{ t('nav.logs') }}</div>
+    <div class="page-title q-mb-md">{{ t('nav.logs') }}</div>
 
     <div class="row q-col-gutter-sm q-mb-md">
       <div class="col-12 col-md-3">
@@ -34,7 +34,7 @@
       :loading="loading"
       v-model:pagination="pagination"
       flat
-      bordered
+      class="app-table"
       @request="onRequest"
     >
       <template #body-cell-user="props">

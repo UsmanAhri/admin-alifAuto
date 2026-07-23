@@ -1,7 +1,7 @@
 <template>
   <q-page class="q-pa-md">
     <div class="row items-center q-mb-md q-col-gutter-sm">
-      <div class="text-h6 col-12 col-md-auto" style="min-width: 160px">{{ t('nav.vehicles') }}</div>
+      <div class="page-title col-12 col-md-auto" style="min-width: 160px">{{ t('nav.vehicles') }}</div>
       <div class="col-12 col-md-3">
         <q-input v-model="filters.search" :label="t('common.search')" dense outlined clearable @update:model-value="reload" />
       </div>
@@ -44,7 +44,7 @@
       :loading="loading"
       v-model:pagination="pagination"
       flat
-      bordered
+      class="app-table"
       @request="onRequest"
     >
       <template #body-cell-photo="props">
@@ -78,18 +78,25 @@
         <q-card-section class="text-h6">{{ editing ? t('vehicles.editTitle') : t('vehicles.addTitle') }}</q-card-section>
         <q-form @submit.prevent="save">
           <q-card-section style="max-height: 65vh; overflow-y: auto" class="q-gutter-md">
+            <!-- Category comes first and gates the rest of the form. -->
+            <q-select
+              :model-value="form.categoryId"
+              :options="categoryOptions"
+              :label="t('vehicles.category') + ' *'"
+              outlined
+              dense
+              emit-value
+              map-options
+              :loading="characteristicsLoading"
+              @update:model-value="onCategoryChange"
+            />
+            <q-banner v-if="fieldsLocked" dense class="bg-blue-1 text-primary rounded-borders">
+              <template #avatar><q-icon name="lock" color="primary" /></template>
+              {{ t('vehicles.selectCategoryFirst') }}
+            </q-banner>
+
+            <div :class="{ 'fields-locked': fieldsLocked }">
             <div class="row q-col-gutter-sm">
-              <q-select
-                v-model="form.categoryId"
-                :options="categoryOptions"
-                :label="t('vehicles.category')"
-                outlined
-                dense
-                emit-value
-                map-options
-                class="col-6"
-                required
-              />
               <q-select
                 v-model="form.brandId"
                 :options="brandOptions"
@@ -98,7 +105,7 @@
                 dense
                 emit-value
                 map-options
-                class="col-6"
+                class="col-12"
                 required
               />
             </div>
@@ -196,23 +203,29 @@
             <div v-if="characteristicGroups.length">
               <div class="text-subtitle2 q-mt-md">{{ t('nav.characteristics') }}</div>
               <div v-for="group in characteristicGroups" :key="group.id">
-                <div class="text-caption text-grey-7 q-mt-sm">{{ groupLabel(group) }}</div>
+                <div class="text-caption text-muted q-mt-sm">{{ groupLabel(group) }}</div>
                 <div class="row q-col-gutter-sm">
                   <q-select
                     v-for="attr in group.characteristics"
                     :key="attr.id"
                     v-model="characteristicValues[attr.id]"
                     :options="attr.values.map((v) => ({ label: v.label, value: v.id }))"
-                    :label="attr.label"
+                    :label="attr.isRequired ? attr.label + ' *' : attr.label"
                     outlined
                     dense
-                    clearable
+                    :clearable="!attr.isRequired"
                     emit-value
                     map-options
                     class="col-4"
+                    :error="!!characteristicErrors[attr.id]"
+                    :error-message="t('vehicles.characteristicRequired')"
+                    @update:model-value="() => clearCharacteristicError(attr.id)"
                   />
                 </div>
               </div>
+            </div>
+            <div v-else-if="!fieldsLocked" class="text-caption text-muted">
+              {{ t('vehicles.noCharacteristicsForCategory') }}
             </div>
 
             <div v-if="editing">
@@ -233,10 +246,11 @@
               </div>
               <q-file v-model="newPhotos" multiple outlined dense accept="image/*" :label="t('vehicles.addPhoto')" @update:model-value="uploadPhotos" />
             </div>
+            </div>
           </q-card-section>
           <q-card-actions align="right">
             <q-btn flat :label="t('common.cancel')" v-close-popup />
-            <q-btn color="primary" type="submit" :label="t('common.save')" :loading="saving" />
+            <q-btn color="primary" type="submit" :label="t('common.save')" :loading="saving" :disable="fieldsLocked" />
           </q-card-actions>
         </q-form>
       </q-card>
@@ -245,10 +259,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useQuasar } from 'quasar'
 import { api } from '@/boot/api'
+import { useCategoryOptions } from '@/composables/useCategoryOptions'
 import type { AdminVehicle, CharacteristicGroup, Translations } from '@/types'
 
 const { t, locale } = useI18n()
@@ -262,10 +277,14 @@ const editing = ref<AdminVehicle | null>(null)
 const activeLocale = ref<'ru' | 'en' | 'zh'>('ru')
 const newPhotos = ref<File[] | null>(null)
 
-const categoryOptions = ref<{ label: string; value: number }[]>([])
 const brandOptions = ref<{ label: string; value: number }[]>([])
 const characteristicGroups = ref<CharacteristicGroup[]>([])
 const characteristicValues = reactive<Record<number, number | null>>({})
+const characteristicErrors = reactive<Record<number, boolean>>({})
+const characteristicsLoading = ref(false)
+
+const { options: categoryOptions, load: loadCategories } = useCategoryOptions()
+const fieldsLocked = computed(() => !form.categoryId)
 
 const filters = reactive({ search: '', status: null as string | null, categoryId: null as number | null })
 const pagination = ref({ page: 1, rowsPerPage: 20, rowsNumber: 0 })
@@ -304,34 +323,85 @@ function formatPrice(price: number, currency: string) {
   return `${Math.round(price).toLocaleString()} ${currency}`
 }
 
-interface FlatCategory { id: number; slug: string; title: Translations; children: FlatCategory[] }
-
-function flattenCategories(nodes: FlatCategory[], depth = 0): { label: string; value: number }[] {
-  return nodes.flatMap((n) => [
-    { label: `${'— '.repeat(depth)}${label(n.title)}`, value: n.id },
-    ...flattenCategories(n.children ?? [], depth + 1),
-  ])
-}
-
-async function loadCategories() {
-  const { data } = await api.get('/categories', { params: { lang: locale.value } })
-  const nodes: FlatCategory[] = data.data.map((c: { id: string; slug: string; title: string; subcategories: { id: string; slug: string; title: string }[] }) => ({
-    id: Number(c.id),
-    slug: c.slug,
-    title: { ru: c.title, en: c.title, zh: c.title } as Translations,
-    children: c.subcategories.map((s) => ({ id: Number(s.id), slug: s.slug, title: { ru: s.title, en: s.title, zh: s.title } as Translations, children: [] })),
-  }))
-  categoryOptions.value = flattenCategories(nodes)
-}
-
 async function loadBrands() {
   const { data } = await api.get('/admin/brands')
   brandOptions.value = data.data.map((b: { id: number; name: string }) => ({ label: b.name, value: b.id }))
 }
 
-async function loadCharacteristics() {
-  const { data } = await api.get('/admin/characteristic-groups')
-  characteristicGroups.value = data.data
+/** Load only the characteristics linked to the given category (or its ancestors). */
+async function loadCategoryCharacteristics(categoryId: number | null) {
+  if (!categoryId) {
+    characteristicGroups.value = []
+    return
+  }
+  characteristicsLoading.value = true
+  try {
+    const { data } = await api.get('/admin/characteristic-groups', { params: { categoryId } })
+    characteristicGroups.value = data.data
+  } finally {
+    characteristicsLoading.value = false
+  }
+}
+
+function hasFilledCharacteristics(): boolean {
+  return Object.values(characteristicValues).some((v) => v !== null && v !== undefined)
+}
+
+/**
+ * Category is the gate for the whole form. Changing it away from a category
+ * that already has filled-in characteristics is guarded, because switching
+ * clears those values and loads a different characteristic set.
+ */
+function onCategoryChange(next: number | null) {
+  if (next === form.categoryId) return
+
+  const commit = async () => {
+    form.categoryId = next
+    resetCharacteristicValues()
+    clearCharacteristicErrors()
+    await loadCategoryCharacteristics(next)
+  }
+
+  if (form.categoryId && hasFilledCharacteristics()) {
+    $q.dialog({
+      title: t('vehicles.changeCategoryTitle'),
+      message: t('vehicles.changeCategoryWarning'),
+      cancel: true,
+      persistent: true,
+      ok: { label: t('common.yes'), color: 'negative' },
+    }).onOk(() => {
+      void commit()
+    })
+    return
+  }
+
+  void commit()
+}
+
+function clearCharacteristicError(id: number) {
+  if (characteristicErrors[id]) delete characteristicErrors[id]
+}
+
+function clearCharacteristicErrors() {
+  for (const key of Object.keys(characteristicErrors)) delete characteristicErrors[Number(key)]
+}
+
+/** Returns true when every required characteristic has a value; flags the ones that don't. */
+function validateRequiredCharacteristics(): boolean {
+  clearCharacteristicErrors()
+  let ok = true
+  for (const group of characteristicGroups.value) {
+    for (const attr of group.characteristics) {
+      if (attr.isRequired) {
+        const v = characteristicValues[attr.id]
+        if (v === null || v === undefined) {
+          characteristicErrors[attr.id] = true
+          ok = false
+        }
+      }
+    }
+  }
+  return ok
 }
 
 async function load() {
@@ -400,10 +470,12 @@ function openCreate() {
   editing.value = null
   Object.assign(form, emptyForm())
   resetCharacteristicValues()
+  clearCharacteristicErrors()
+  characteristicGroups.value = []
   dialogOpen.value = true
 }
 
-function openEdit(vehicle: AdminVehicle) {
+async function openEdit(vehicle: AdminVehicle) {
   editing.value = vehicle
   Object.assign(form, {
     categoryId: vehicle.categoryId,
@@ -431,8 +503,11 @@ function openEdit(vehicle: AdminVehicle) {
     onOrderAbroad: vehicle.onOrderAbroad,
   })
   resetCharacteristicValues()
-  for (const c of vehicle.characteristics) characteristicValues[c.characteristicId] = c.valueId
+  clearCharacteristicErrors()
   dialogOpen.value = true
+  // Load this category's characteristic set, then restore the saved values.
+  await loadCategoryCharacteristics(vehicle.categoryId)
+  for (const c of vehicle.characteristics) characteristicValues[c.characteristicId] = c.valueId
 }
 
 async function fetchFullVehicle(id: number) {
@@ -441,6 +516,12 @@ async function fetchFullVehicle(id: number) {
 }
 
 async function save() {
+  // Client-side gate: block the save and flag any missing required characteristics.
+  if (!validateRequiredCharacteristics()) {
+    $q.notify({ type: 'negative', message: t('vehicles.requiredMissing') })
+    return
+  }
+
   saving.value = true
   try {
     const payload = { ...form, characteristics: { ...characteristicValues } }
@@ -456,11 +537,31 @@ async function save() {
     // Stay open and switch into edit mode so photos can be attached right after creating.
     editing.value = await fetchFullVehicle(saved.id)
     await load()
-  } catch {
-    $q.notify({ type: 'negative', message: t('common.error') })
+  } catch (e: unknown) {
+    if (!applyServerValidationErrors(e)) {
+      $q.notify({ type: 'negative', message: t('common.error') })
+    }
   } finally {
     saving.value = false
   }
+}
+
+/** Maps a 422 response's `characteristics.{id}` errors onto inline field errors. Returns true if handled. */
+function applyServerValidationErrors(e: unknown): boolean {
+  const response = (e as { response?: { status?: number; data?: { errors?: Record<string, string[]> } } })?.response
+  if (response?.status !== 422 || !response.data?.errors) return false
+
+  clearCharacteristicErrors()
+  let flagged = false
+  for (const key of Object.keys(response.data.errors)) {
+    const match = /^characteristics\.(\d+)$/.exec(key)
+    if (match) {
+      characteristicErrors[Number(match[1])] = true
+      flagged = true
+    }
+  }
+  $q.notify({ type: 'negative', message: flagged ? t('vehicles.requiredMissing') : t('common.error') })
+  return true
 }
 
 async function uploadPhotos(files: File[] | null) {
@@ -498,7 +599,14 @@ function confirmDelete(vehicle: AdminVehicle) {
 onMounted(() => {
   loadCategories()
   loadBrands()
-  loadCharacteristics()
   load()
 })
 </script>
+
+<style scoped>
+.fields-locked {
+  opacity: 0.5;
+  pointer-events: none;
+  user-select: none;
+}
+</style>

@@ -20,7 +20,13 @@ const router = createRouter({
       path: '/',
       component: () => import('@/layouts/AdminLayout.vue'),
       children: [
-        { path: '', redirect: '/vehicles' },
+        { path: '', redirect: '/dashboard' },
+        {
+          path: 'dashboard',
+          name: 'dashboard',
+          component: () => import('@/pages/DashboardPage.vue'),
+          meta: { roles: ['administrator', 'manager', 'partner'] },
+        },
         {
           path: 'users',
           name: 'users',

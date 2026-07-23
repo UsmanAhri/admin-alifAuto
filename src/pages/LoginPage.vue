@@ -1,11 +1,14 @@
 <template>
   <q-layout>
     <q-page-container>
-      <q-page class="flex flex-center bg-grey-2">
-    <q-card style="width: 380px" class="q-pa-md">
+      <q-page class="flex flex-center login-bg">
+    <q-card style="width: 400px" class="q-pa-md app-card login-card">
       <q-card-section class="text-center">
-        <div class="text-h6">Alif Auto Co</div>
-        <div class="text-subtitle2 text-grey-7">{{ t('login.title') }}</div>
+        <q-avatar size="52px" square class="login-mark q-mb-sm">
+          <q-icon name="directions_car" size="28px" color="white" />
+        </q-avatar>
+        <div class="text-h6 text-weight-bold">Alif Auto Co</div>
+        <div class="text-subtitle2 text-muted">{{ t('login.title') }}</div>
       </q-card-section>
 
       <q-card-section>
@@ -59,6 +62,22 @@
     </q-page-container>
   </q-layout>
 </template>
+
+<style scoped>
+.login-bg {
+  background: radial-gradient(1200px 600px at 50% -10%, #eef2ff 0%, #f6f7f9 55%);
+}
+:global(body.body--dark) .login-bg {
+  background: radial-gradient(1200px 600px at 50% -10%, #312e81 0%, #0f172a 55%);
+}
+.login-card {
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+.login-mark {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  border-radius: 12px;
+}
+</style>
 
 <script setup lang="ts">
 import { ref } from 'vue'

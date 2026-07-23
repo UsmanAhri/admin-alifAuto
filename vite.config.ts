@@ -7,7 +7,9 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [
     vue({ template: { transformAssetUrls } }),
-    quasar(),
+    quasar({
+      sassVariables: fileURLToPath(new URL('./src/css/quasar.variables.scss', import.meta.url)),
+    }),
   ],
   resolve: {
     alias: {

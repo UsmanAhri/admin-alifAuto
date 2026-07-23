@@ -1,0 +1,24 @@
+// Quasar brand + typography tokens.
+// These feed Quasar's own components (buttons, badges, banners, etc.) so the
+// whole panel shares one palette. App-level tokens live in app.scss.
+
+$primary:   #4f46e5; // indigo 600 — primary/accent
+$secondary: #64748b; // slate 500 — muted actions
+$accent:    #7c3aed; // violet 600
+
+$dark:      #1e293b; // slate 800 — headings / dark surfaces
+$dark-page: #0f172a;
+
+$positive:  #16a34a; // green 600
+$negative:  #dc2626; // red 600
+$info:      #0ea5e9; // sky 500
+$warning:   #d97706; // amber 600
+
+$typography-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+  'Helvetica Neue', Arial, sans-serif;
+
+$body-font-size: 14px;
+$body-line-height: 1.5;
+
+$h6-font-size: 1.125rem;
+$h6-font-weight: 600;

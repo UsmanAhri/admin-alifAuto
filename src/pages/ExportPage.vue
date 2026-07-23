@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="text-h6 q-mb-md">{{ t('exportPage.title') }}</div>
+    <div class="page-title q-mb-md">{{ t('exportPage.title') }}</div>
 
     <q-card flat bordered class="q-pa-md" style="max-width: 480px">
       <div class="text-subtitle1 q-mb-md">{{ t('exportPage.vehiclesEntity') }}</div>

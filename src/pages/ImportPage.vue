@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="text-h6 q-mb-md">{{ t('importPage.title') }}</div>
+    <div class="page-title q-mb-md">{{ t('importPage.title') }}</div>
 
     <q-tabs v-model="type" dense class="text-primary q-mb-md">
       <q-tab name="categories" :label="t('importPage.categories')" />

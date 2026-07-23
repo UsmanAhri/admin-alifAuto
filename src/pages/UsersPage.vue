@@ -1,7 +1,7 @@
 <template>
   <q-page class="q-pa-md">
     <div class="row items-center q-mb-md">
-      <div class="text-h6 col">{{ t('nav.users') }}</div>
+      <div class="page-title col">{{ t('nav.users') }}</div>
       <q-btn color="primary" icon="add" :label="t('common.add')" @click="openCreate" />
     </div>
 
@@ -11,7 +11,7 @@
       row-key="id"
       :loading="loading"
       flat
-      bordered
+      class="app-table"
     >
       <template #body-cell-isActive="props">
         <q-td :props="props">

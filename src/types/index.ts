@@ -62,6 +62,8 @@ export interface Characteristic {
   name: Translations
   label: string
   useInFilters: boolean
+  isRequired: boolean
+  categoryIds: number[]
   position: number
   values: CharacteristicValue[]
 }
@@ -142,7 +144,8 @@ export interface AdminOrder {
   message: string | null
   type: string
   status: OrderStatus
-  vehicle: { id: number; slug: string; brand: string | null; model: string } | null
+  vehicle: { id: number; slug: string; brand: string | null; model: string; creatorName?: string | null } | null
+  partnerOwned: boolean
   createdAt: string
 }
 
@@ -161,6 +164,25 @@ export interface AdminNewsPost {
   seoDescription: Translations
   createdAt: string
   updatedAt: string
+}
+
+export interface DashboardData {
+  role: Role
+  orders: { new: number; inProgress: number; total: number }
+  vehicles: { total: number; active: number; draft: number }
+  users: number | null
+  news: { published: number; total: number } | null
+  ordersByDay: { date: string; count: number }[]
+  latestOrders: { id: number; name: string; status: OrderStatus; vehicle: string | null; createdAt: string }[]
+  latestVehicles: {
+    id: number
+    title: string
+    year: number
+    price: number
+    currency: string
+    status: VehicleStatus
+    createdAt: string
+  }[]
 }
 
 export interface PageMeta {

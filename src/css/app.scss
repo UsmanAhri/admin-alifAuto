@@ -1,0 +1,314 @@
+/* ==========================================================================
+   Alif Auto Admin — design system
+   A single, well-executed light theme. Tokens first, then component polish.
+   ========================================================================== */
+
+:root {
+  /* Neutral gray ramp (slate) */
+  --c-gray-50:  #f8fafc;
+  --c-gray-100: #f1f5f9;
+  --c-gray-200: #e2e8f0;
+  --c-gray-300: #cbd5e1;
+  --c-gray-400: #94a3b8;
+  --c-gray-500: #64748b;
+  --c-gray-600: #475569;
+  --c-gray-700: #334155;
+  --c-gray-800: #1e293b;
+  --c-gray-900: #0f172a;
+
+  --c-primary: #4f46e5;
+  --c-primary-weak: #eef2ff;
+  --c-primary-weak-border: #c7d2fe;
+
+  --c-positive: #16a34a;
+  --c-negative: #dc2626;
+  --c-warning: #d97706;
+  --c-info: #0ea5e9;
+
+  /* Surfaces */
+  --surface-page: #f6f7f9;
+  --surface-card: #ffffff;
+  --surface-sidebar: #ffffff;
+  --border-color: #e6e8ec;
+
+  /* Spacing scale (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 1px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+/* --- Dark theme --------------------------------------------------------- */
+/* Quasar toggles `body.body--dark` via the Dark plugin. We remap the design
+   tokens so the whole panel follows one dark palette. The gray ramp is
+   inverted (50 = darkest, 900 = lightest) so tokens used for text turn light
+   and tokens used for fills turn dark automatically. */
+
+body.body--dark {
+  /* Inverted neutral ramp */
+  --c-gray-50:  #1b2537;
+  --c-gray-100: #243044;
+  --c-gray-200: #2f3b52;
+  --c-gray-300: #3f4c66;
+  --c-gray-400: #64748b;
+  --c-gray-500: #94a3b8;
+  --c-gray-600: #cbd5e1;
+  --c-gray-700: #e2e8f0;
+  --c-gray-800: #f1f5f9;
+  --c-gray-900: #f8fafc;
+
+  --c-primary: #818cf8;
+  --c-primary-weak: #312e81;
+  --c-primary-weak-border: #4338ca;
+
+  /* Surfaces */
+  --surface-page: #0f172a;
+  --surface-card: #1e293b;
+  --surface-sidebar: #1e293b;
+  --border-color: #334155;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 1px 1px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+
+  /* Quasar's static grey text helpers used in the chrome need remapping so
+     they stay legible on dark surfaces. */
+  .text-grey-9 { color: var(--c-gray-800) !important; }
+  .text-grey-8 { color: var(--c-gray-700) !important; }
+  .text-grey-7 { color: var(--c-gray-600) !important; }
+  .text-grey-6 { color: var(--c-gray-500) !important; }
+
+  .brand-mark { box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.35); }
+}
+
+/* --- Base --------------------------------------------------------------- */
+
+body {
+  background: var(--surface-page);
+  color: var(--c-gray-800);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.text-muted { color: var(--c-gray-500) !important; }
+
+/* --- Cards -------------------------------------------------------------- */
+
+.q-card {
+  border-radius: var(--radius-lg);
+}
+
+.app-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* --- Buttons ------------------------------------------------------------ */
+
+.q-btn {
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.q-btn.q-btn--rectangle { border-radius: var(--radius-sm); }
+
+/* --- Inputs ------------------------------------------------------------- */
+
+.q-field--outlined .q-field__control {
+  border-radius: var(--radius-sm);
+}
+
+/* --- Tables ------------------------------------------------------------- */
+
+.q-table__container.app-table,
+.app-table .q-table__container {
+  border-radius: var(--radius-lg);
+}
+
+.app-table {
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  background: var(--surface-card);
+  overflow: hidden;
+
+  thead th {
+    background: var(--c-gray-50);
+    color: var(--c-gray-500);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  tbody td {
+    border-bottom: 1px solid var(--c-gray-100);
+    font-size: 13.5px;
+  }
+
+  tbody tr:hover td {
+    background: var(--c-gray-50);
+  }
+}
+
+/* --- Badges ------------------------------------------------------------- */
+
+.q-badge {
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* --- Layout chrome ------------------------------------------------------ */
+
+.app-header {
+  background: var(--surface-card) !important;
+  color: var(--c-gray-800) !important;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.app-drawer {
+  background: var(--surface-sidebar);
+}
+
+.nav-item {
+  border-radius: var(--radius-sm);
+  margin: 2px 10px;
+  min-height: 42px;
+  color: var(--c-gray-600);
+  font-weight: 500;
+
+  .q-icon { color: var(--c-gray-400); }
+
+  &:hover { background: var(--c-gray-100); }
+
+  &.nav-item--active {
+    background: var(--c-primary-weak);
+    color: var(--c-primary);
+    font-weight: 600;
+    .q-icon { color: var(--c-primary); }
+  }
+}
+
+.nav-section-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-gray-400);
+  padding: 16px 20px 6px;
+}
+
+/* --- Role badge --------------------------------------------------------- */
+
+.role-badge {
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  text-transform: capitalize;
+  background: var(--c-primary-weak);
+  color: var(--c-primary);
+  border: 1px solid var(--c-primary-weak-border);
+}
+
+/* --- Page heading ------------------------------------------------------- */
+
+.page-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--c-gray-900);
+  letter-spacing: -0.01em;
+}
+.page-subtitle {
+  color: var(--c-gray-500);
+  font-size: 13px;
+}
+
+/* --- Stat / summary cards ---------------------------------------------- */
+
+.stat-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+}
+.stat-card--link {
+  cursor: pointer;
+  &:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    border-color: var(--c-primary-weak-border);
+  }
+}
+.stat-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stat-card__value {
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--c-gray-900);
+}
+.stat-card__label {
+  color: var(--c-gray-500);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+/* --- Empty / error states ---------------------------------------------- */
+
+.state-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+  color: var(--c-gray-500);
+
+  .q-icon { color: var(--c-gray-300); }
+}
+
+/* --- Scrollbar (subtle) ------------------------------------------------- */
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb {
+  background: var(--c-gray-300);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--c-gray-400); background-clip: content-box; }

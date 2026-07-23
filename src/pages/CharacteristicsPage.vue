@@ -1,7 +1,7 @@
 <template>
   <q-page class="q-pa-md">
     <div class="row items-center q-mb-md">
-      <div class="text-h6 col">{{ t('nav.characteristics') }}</div>
+      <div class="page-title col">{{ t('nav.characteristics') }}</div>
       <q-btn color="primary" icon="add" :label="t('characteristics.addGroup')" @click="openGroupDialog(null)" />
     </div>
 
@@ -25,8 +25,15 @@
         <q-list separator>
           <q-item v-for="attr in group.characteristics" :key="attr.id">
             <q-item-section>
-              <div class="text-weight-medium">{{ label(attr.name) }}</div>
-              <div class="text-grey-7 text-caption">
+              <div class="row items-center q-gutter-xs">
+                <span class="text-weight-medium">{{ label(attr.name) }}</span>
+                <q-badge v-if="attr.isRequired" color="negative" outline :label="t('characteristics.required')" />
+                <q-badge v-if="attr.categoryIds.length" color="primary" outline>
+                  <q-icon name="category" size="12px" class="q-mr-xs" />
+                  {{ t('characteristics.categoriesCount', { n: attr.categoryIds.length }) }}
+                </q-badge>
+              </div>
+              <div class="text-muted text-caption">
                 {{ attr.values.map((v) => label(v.value)).join(', ') }}
               </div>
             </q-item-section>
@@ -34,7 +41,17 @@
               <q-toggle
                 :model-value="attr.useInFilters"
                 :label="t('characteristics.useInFilters')"
-                @update:model-value="(val) => toggleUseInFilters(attr, val)"
+                dense
+                @update:model-value="(val) => persistAttr(attr, { useInFilters: val })"
+              />
+            </q-item-section>
+            <q-item-section side>
+              <q-toggle
+                :model-value="attr.isRequired"
+                :label="t('characteristics.required')"
+                color="negative"
+                dense
+                @update:model-value="(val) => persistAttr(attr, { isRequired: val })"
               />
             </q-item-section>
             <q-item-section side>
@@ -79,7 +96,23 @@
               <q-input v-model="attributeForm.name.en" label="EN" outlined dense class="col" />
               <q-input v-model="attributeForm.name.zh" label="ZH" outlined dense class="col" />
             </div>
-            <q-toggle v-model="attributeForm.useInFilters" :label="t('characteristics.useInFilters')" />
+            <q-select
+              v-model="attributeForm.categoryIds"
+              :options="categoryOptions"
+              :label="t('characteristics.linkedCategories')"
+              :hint="t('characteristics.linkedCategoriesHint')"
+              outlined
+              dense
+              multiple
+              use-chips
+              emit-value
+              map-options
+              clearable
+            />
+            <div class="row q-gutter-md">
+              <q-toggle v-model="attributeForm.useInFilters" :label="t('characteristics.useInFilters')" />
+              <q-toggle v-model="attributeForm.isRequired" color="negative" :label="t('characteristics.required')" />
+            </div>
 
             <div class="text-subtitle2">{{ t('characteristics.values') }}</div>
             <div v-for="(value, index) in attributeForm.values" :key="index" class="row q-col-gutter-sm items-center">
@@ -105,6 +138,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useQuasar } from 'quasar'
 import { api } from '@/boot/api'
+import { useCategoryOptions } from '@/composables/useCategoryOptions'
 import type { Characteristic, CharacteristicGroup, Translations } from '@/types'
 
 const { t, locale } = useI18n()
@@ -113,6 +147,7 @@ const $q = useQuasar()
 const groups = ref<CharacteristicGroup[]>([])
 const loading = ref(false)
 const saving = ref(false)
+const { options: categoryOptions, load: loadCategories } = useCategoryOptions()
 
 function label(value: Translations) {
   return value[locale.value as keyof Translations] ?? value.ru ?? value.en ?? Object.values(value)[0] ?? ''
@@ -178,6 +213,8 @@ const activeGroup = ref<CharacteristicGroup | null>(null)
 const attributeForm = reactive({
   name: { ru: '', en: '', zh: '' },
   useInFilters: false,
+  isRequired: false,
+  categoryIds: [] as number[],
   values: [] as { id?: number; value: { ru: string; en: string; zh: string } }[],
 })
 
@@ -187,6 +224,8 @@ function openAttributeDialog(group: CharacteristicGroup, attribute: Characterist
   Object.assign(attributeForm, {
     name: { ru: attribute?.name.ru ?? '', en: attribute?.name.en ?? '', zh: attribute?.name.zh ?? '' },
     useInFilters: attribute?.useInFilters ?? false,
+    isRequired: attribute?.isRequired ?? false,
+    categoryIds: [...(attribute?.categoryIds ?? [])],
     values: (attribute?.values ?? []).map((v) => ({
       id: v.id,
       value: { ru: v.value.ru ?? '', en: v.value.en ?? '', zh: v.value.zh ?? '' },
@@ -207,6 +246,8 @@ async function saveAttribute() {
       groupId: activeGroup.value.id,
       name: attributeForm.name,
       useInFilters: attributeForm.useInFilters,
+      isRequired: attributeForm.isRequired,
+      categoryIds: attributeForm.categoryIds,
       position: editingAttribute.value?.position ?? activeGroup.value.characteristics.length,
       values: attributeForm.values.map((v, i) => ({ id: v.id, value: v.value, position: i })),
     }
@@ -225,15 +266,22 @@ async function saveAttribute() {
   }
 }
 
-async function toggleUseInFilters(attr: Characteristic, value: boolean) {
-  await api.put(`/admin/characteristics/${attr.id}`, {
-    groupId: attr.groupId,
-    name: attr.name,
-    useInFilters: value,
-    position: attr.position,
-    values: attr.values.map((v, i) => ({ id: v.id, value: v.value, position: i })),
-  })
-  await load()
+/** Persist a single-field change (a toggle) without losing the attribute's other state. */
+async function persistAttr(attr: Characteristic, overrides: Partial<Pick<Characteristic, 'useInFilters' | 'isRequired'>>) {
+  try {
+    await api.put(`/admin/characteristics/${attr.id}`, {
+      groupId: attr.groupId,
+      name: attr.name,
+      useInFilters: overrides.useInFilters ?? attr.useInFilters,
+      isRequired: overrides.isRequired ?? attr.isRequired,
+      categoryIds: attr.categoryIds,
+      position: attr.position,
+      values: attr.values.map((v, i) => ({ id: v.id, value: v.value, position: i })),
+    })
+    await load()
+  } catch {
+    $q.notify({ type: 'negative', message: t('common.error') })
+  }
 }
 
 function confirmDeleteAttribute(attr: Characteristic) {
@@ -249,5 +297,8 @@ function confirmDeleteAttribute(attr: Characteristic) {
   })
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  loadCategories()
+})
 </script>

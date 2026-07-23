@@ -1,12 +1,12 @@
 <template>
   <q-page class="q-pa-md">
     <div class="row items-center q-mb-md">
-      <div class="text-h6 col">{{ t('nav.news') }}</div>
+      <div class="page-title col">{{ t('nav.news') }}</div>
       <q-input v-model="search" :label="t('common.search')" dense outlined class="q-mr-md" style="width: 240px" clearable @update:model-value="load" />
       <q-btn color="primary" icon="add" :label="t('common.add')" @click="openCreate" />
     </div>
 
-    <q-table :rows="posts" :columns="columns" row-key="id" :loading="loading" flat bordered>
+    <q-table :rows="posts" :columns="columns" row-key="id" :loading="loading" flat class="app-table">
       <template #body-cell-cover="props">
         <q-td :props="props">
           <q-avatar v-if="props.row.coverUrl" square size="40px">
